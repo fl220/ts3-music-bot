@@ -1,0 +1,22 @@
+{
+  "name": "ts3-music-bot",
+  "version": "1.0.0",
+  "description": "Bot de música para TeamSpeak 3 con soporte de YouTube",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "dev:watch": "ts-node-dev --respawn --transpile-only src/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ts3-nodejs-library": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
+  }
+}

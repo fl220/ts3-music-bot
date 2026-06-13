@@ -1,0 +1,58 @@
+services:
+
+  # ── 1. Bot de música (ServerQuery — comandos de chat) ──────────────────────
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ts3-music-bot
+    env_file: .env
+    environment:
+      # Plataforma Linux: usar PulseAudio en lugar de ffplay
+      - PULSE_SINK=ts3sink
+      # Conectar al PulseAudio del contenedor ts3client vía socket compartido
+      - PULSE_SERVER=unix:/tmp/pulse/native
+    volumes:
+      - pulse-socket:/tmp/pulse
+    restart: unless-stopped
+    depends_on:
+      ts3client:
+        condition: service_healthy
+    networks:
+      - ts3net
+
+  # ── 2. Cliente TS3 headless (transmite el audio al servidor) ───────────────
+  ts3client:
+    build:
+      context: .
+      dockerfile: Dockerfile.ts3client
+    container_name: ts3-music-client
+    env_file: .env
+    volumes:
+      # Socket de PulseAudio compartido con el bot
+      - pulse-socket:/tmp/pulse
+      # Persistir configuración del cliente TS3 entre reinicios
+      - ts3-config:/home/ts3/.config
+    restart: unless-stopped
+    shm_size: '256m'
+    # Necesario para PulseAudio dentro del contenedor
+    cap_add:
+      - SYS_NICE
+    healthcheck:
+      test: ["CMD", "pgrep", "-x", "ts3client"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ts3net
+
+networks:
+  ts3net:
+    driver: bridge
+
+volumes:
+  pulse-socket:
+    driver: local
+  ts3-config:
+    driver: local

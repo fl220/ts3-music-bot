@@ -1,0 +1,53 @@
+# Cliente TeamSpeak 3 headless para Linux
+# Usa Xvfb (display virtual) + PulseAudio null sink para transmitir audio al servidor TS3
+FROM ubuntu:22.04
+
+LABEL description="TS3 Client headless con Xvfb y PulseAudio"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TS3_VERSION=3.6.2
+
+# Instalar dependencias
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        # Display virtual
+        xvfb \
+        # Audio
+        pulseaudio \
+        pulseaudio-utils \
+        # TS3 client dependencies
+        wget \
+        sqlite3 \
+        libdbus-1-3 \
+        libglib2.0-0 \
+        libxrender1 \
+        libxcomposite1 \
+        libxi6 \
+        libxrandr2 \
+        libxext6 \
+        libx11-6 \
+        libxfixes3 \
+        libnss3 \
+        libnspr4 \
+        fonts-liberation \
+        # Utilities
+        procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no-root para el cliente TS3
+RUN useradd -m -u 1000 -s /bin/bash ts3
+
+USER ts3
+WORKDIR /home/ts3
+
+# Descargar e instalar el cliente TS3 para Linux
+RUN wget -q \
+        "https://files.teamspeak-services.com/releases/client/${TS3_VERSION}/TeamSpeak3-Client-linux_amd64-${TS3_VERSION}.run" \
+        -O ts3.run \
+    && chmod +x ts3.run \
+    && printf "1\n" | ./ts3.run --dir /home/ts3/ts3client 2>/dev/null ; rm -f ts3.run
+
+# Copiar script de inicio
+COPY --chown=ts3:ts3 scripts/start-ts3.sh /home/ts3/start.sh
+RUN chmod +x /home/ts3/start.sh
+
+CMD ["/home/ts3/start.sh"]
