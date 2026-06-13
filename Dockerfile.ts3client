@@ -38,15 +38,18 @@ RUN useradd -m -u 1000 -s /bin/bash ts3
 
 # ── Crear directorios con permisos correctos ANTES de cambiar a ts3 ──────────
 # Esto evita el error "Permission denied" en /home/ts3/.config/pulse
+# /tmp/.X11-unix necesita existir (con sticky bit) para que Xvfb funcione sin root
 RUN mkdir -p \
         /run/user/1000 \
         /tmp/pulse \
+        /tmp/.X11-unix \
         /home/ts3/.config/pulse \
         "/home/ts3/.config/TeamSpeak 3 Client" \
     && chown -R ts3:ts3 /home/ts3 \
     && chown ts3:ts3 /run/user/1000 /tmp/pulse \
     && chmod 700 /run/user/1000 \
-    && chmod 1777 /tmp/pulse
+    && chmod 1777 /tmp/pulse \
+    && chmod 1777 /tmp/.X11-unix
 
 USER ts3
 WORKDIR /home/ts3
