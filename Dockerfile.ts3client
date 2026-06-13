@@ -36,6 +36,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Crear usuario no-root para el cliente TS3
 RUN useradd -m -u 1000 -s /bin/bash ts3
 
+# ── Crear directorios con permisos correctos ANTES de cambiar a ts3 ──────────
+# Esto evita el error "Permission denied" en /home/ts3/.config/pulse
+RUN mkdir -p \
+        /run/user/1000 \
+        /tmp/pulse \
+        /home/ts3/.config/pulse \
+        "/home/ts3/.config/TeamSpeak 3 Client" \
+    && chown -R ts3:ts3 /home/ts3 \
+    && chown ts3:ts3 /run/user/1000 /tmp/pulse \
+    && chmod 700 /run/user/1000 \
+    && chmod 1777 /tmp/pulse
+
 USER ts3
 WORKDIR /home/ts3
 

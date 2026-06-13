@@ -31,8 +31,9 @@ services:
     volumes:
       # Socket de PulseAudio compartido con el bot
       - pulse-socket:/tmp/pulse
-      # Persistir configuración del cliente TS3 entre reinicios
-      - ts3-config:/home/ts3/.config
+      # NOTA: NO montamos ts3-config aquí porque los volúmenes Docker se crean
+      # como root y rompían los permisos de PulseAudio en /home/ts3/.config
+      # La licencia se acepta automáticamente en cada inicio vía SQLite
     restart: unless-stopped
     shm_size: '256m'
     # Necesario para PulseAudio dentro del contenedor
@@ -43,7 +44,7 @@ services:
       interval: 15s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 45s
     networks:
       - ts3net
 
@@ -53,6 +54,4 @@ networks:
 
 volumes:
   pulse-socket:
-    driver: local
-  ts3-config:
     driver: local
